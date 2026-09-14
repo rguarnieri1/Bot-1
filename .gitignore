@@ -1,46 +1,66 @@
-# Binaries
-*.exe
-*.dll
-*.pdb
-bin/
-obj/
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
 
-# Build output
-**/Release/
-**/Debug/
-*.o
-*.so
-
-# IDE
-.vscode/
+# Visual Studio cache/options
 .vs/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Rider
+.idea/
+*.sln.iml
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Local configuration files
+config.local.json
+appsettings.local.json
+
+# Data and Logs
+Data/trades.json
+Data/Reports/
+Logs/
+
+# Temporary files
+*.tmp
 *.swp
 *.swo
 *~
 
-# Sensitive files
-appsettings.*.json
-*.local.json
-.env
-credentials.json
-secrets.json
-
-# Logs
-*.log
-
-# User files
+# OS files
 .DS_Store
 Thumbs.db
 
-# Package management
-packages/
-.nuget/
-
-# Test results
-TestResults/
-
-# Built documentation
-docs/_build/
-
-# Node modules (if any)
+# Node modules (if using any frontend)
 node_modules/
+
+# Environment files
+.env
+.env.local
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Coverage
+coverage/
+*.coverage
