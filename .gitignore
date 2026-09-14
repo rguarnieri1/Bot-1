@@ -1,0 +1,46 @@
+# Binaries
+*.exe
+*.dll
+*.pdb
+bin/
+obj/
+
+# Build output
+**/Release/
+**/Debug/
+*.o
+*.so
+
+# IDE
+.vscode/
+.vs/
+*.swp
+*.swo
+*~
+
+# Sensitive files
+appsettings.*.json
+*.local.json
+.env
+credentials.json
+secrets.json
+
+# Logs
+*.log
+
+# User files
+.DS_Store
+Thumbs.db
+
+# Package management
+packages/
+.nuget/
+
+# Test results
+TestResults/
+
+# Built documentation
+docs/_build/
+
+# Node modules (if any)
+node_modules/
