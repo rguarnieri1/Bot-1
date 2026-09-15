@@ -6,8 +6,7 @@ Bot di trading automatico in .NET 8 C# che monitora i mercati delle criptovalute
 
 - **Monitoraggio Continuo**: Controlla il mercato ogni 5 minuti
 - **Strategie Tecniche Implementate**:
-  - **Bullish Divergence**: Identifica divergenze rialziste tra prezzo e RSI
-  - **Zero-Line Crossover**: Rileva incroci del MACD sulla linea zero
+  - **EMA Ribbon Trend Following**: Allineamento dei 4 EMA con conferma candle e volume
 - **Notifiche Desktop**: Avvisi in tempo reale per ogni segnale rilevato
 - **Report Settimanale**: Riepilogo automatico delle performance ogni lunedì
 - **Tracking Operazioni**: Monitora tutte le operazioni (entry/exit) con profitti
@@ -38,9 +37,8 @@ Il bot si avvierà e inizierà a monitorare il mercato ogni 5 minuti.
 │   ├── ReportingService.cs         # Tracking operazioni e reporting
 │   └── BotSchedulerService.cs      # Orchestrazione del bot
 ├── Strategies/
-│   ├── TechnicalIndicators.cs      # Indicatori tecnici (RSI, MACD, EMA, SMA)
-│   ├── BullishDivergenceStrategy.cs # Strategia Bullish Divergence
-│   └── ZeroLineCrossoverStrategy.cs # Strategia Zero-Line Crossover
+│   ├── TechnicalIndicators.cs           # Indicatori tecnici (RSI, MACD, EMA, SMA)
+│   └── EmaRibbonTrendFollowingStrategy.cs # Strategia principale EMA Ribbon
 ├── Data/
 │   ├── trades.json                 # Registro operazioni
 │   └── Reports/
@@ -53,20 +51,17 @@ Il bot si avvierà e inizierà a monitorare il mercato ogni 5 minuti.
 
 ## 📈 Strategie di Trading
 
-### Bullish Divergence
-Identifica quando il prezzo tocca un minimo più basso del precedente, ma l'RSI (Relative Strength Index) forme un minimo più alto. Questo crea una divergenza rialzista indicando una possibile inversione al rialzo.
+### EMA Ribbon Trend Following + Candle Confirmation
+Strategia trend-following principale che utilizza l'allineamento di 4 EMA (5, 10, 20, 50) per identificare trend forti, con conferma mediante:
+- **Candle Body Strength**: Il corpo della candela deve rappresentare >60% dell'altezza totale
+- **Volume Confirmation**: Volume deve essere 1.2x superiore alla media
+- **Filtro RSI**: RSI deve trovarsi fuori dalle zone di ipercomprato/ipervenduto (30-70)
 
 **Parametri**:
-- RSI Period: 14
-- Lookback: 5 candele
-
-### Zero-Line Crossover
-Rileva quando il MACD (Moving Average Convergence Divergence) attraversa la linea zero, con conferma opzionale dell'RSI che attraversa il livello 50.
-
-**Parametri**:
-- MACD Fast: 12
-- MACD Slow: 26
-- MACD Signal: 9
+- EMA Periods: 5, 10, 20, 50
+- Candle Body Threshold: 0.6 (60%)
+- Volume Multiplier: 1.2x
+- Win Rate Atteso: 60-62%
 
 ## 📁 Output
 
@@ -78,7 +73,7 @@ Tutte le operazioni sono salvate in `Data/trades.json`:
   "Symbol": "BTC",
   "OpenTime": "2026-08-31T10:30:00Z",
   "EntryPrice": 42500.50,
-  "Strategy": "Bullish Divergence",
+  "Strategy": "EMA Ribbon Trend Following (Primary)",
   "Status": "Open"
 }
 ```

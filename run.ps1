@@ -3,6 +3,10 @@
 
 $ErrorActionPreference = "Stop"
 
+# Set working directory to script directory
+$scriptDir = Split-Path -Parent -Path $MyInvocation.MyCommand.Definition
+Set-Location $scriptDir
+
 # Colori per output
 function Write-Success {
     Write-Host $args[0] -ForegroundColor Green

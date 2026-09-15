@@ -9,8 +9,6 @@ public class BotSchedulerService
     private readonly NotificationService _notificationService;
     private readonly ReportingService _reportingService;
     private readonly EmaRibbonTrendFollowingStrategy _emaRibbonStrategy;
-    // private readonly BullishDivergenceStrategy _bullishStrategy;
-    // private readonly ZeroLineCrossoverStrategy _crossoverStrategy;
     private readonly RiskManager _riskManager;
     private Timer? _marketCheckTimer;
     private Timer? _weeklyReportTimer;
@@ -27,8 +25,6 @@ public class BotSchedulerService
         _notificationService = new NotificationService();
         _reportingService = new ReportingService();
         _emaRibbonStrategy = new EmaRibbonTrendFollowingStrategy();
-        // _bullishStrategy = new BullishDivergenceStrategy();
-        // _crossoverStrategy = new ZeroLineCrossoverStrategy();
         _riskManager = new RiskManager(
             initialCapital,
             riskPercentPerTrade: 0.02m,      // 2% rischio per trade
@@ -159,48 +155,7 @@ public class BotSchedulerService
                         }
                     }
 
-                    // 2️⃣ Bullish Divergence V2 (Strategy not implemented in current version)
-                    // Non eseguire se già trovato segnale con EMA Ribbon
-                    if (false) // !emaRibbonResult.IsSignal - disabled
-                    {
-                        var bullishResult = new AnalysisResult { IsSignal = false }; // _bullishStrategy.Analyze(crypto.Symbol, candles);
-
-                        if (bullishResult.IsSignal)
-                        {
-                            // Valida con RiskManager
-                            var positionResult = _riskManager.CalculatePosition(
-                                crypto.Symbol,
-                                crypto.CurrentPrice,
-                                volatilityPercent,
-                                openTrades,
-                                _currentAccountValue
-                            );
-
-                            if (positionResult.IsValid)
-                            {
-                                bullishResult.Indicators["PositionSize"] = positionResult.PositionSize;
-                                bullishResult.Indicators["RiskRewardRatio"] = positionResult.RiskRewardRatio;
-                                bullishResult.Indicators["Leverage"] = positionResult.LeverageRatio;
-                                bullishResult.Indicators["ExpectedProfit"] = positionResult.ExpectedProfit;
-
-                                await _notificationService.SendNotificationAsync(bullishResult);
-                                _reportingService.RecordTrade(
-                                    crypto.Symbol,
-                                    crypto.CurrentPrice,
-                                    "Bullish Divergence V2 (Backup)");
-
-                                _signalsGenerated++;
-                                _tradesRecorded++;
-                                signalsFound++;
-                            }
-                            else
-                            {
-                                signalsFiltered++;
-                            }
-                        }
-                    }
-
-                    await Task.Delay(50);  // Delay più breve
+                    await Task.Delay(50);
                 }
                 catch (Exception ex)
                 {

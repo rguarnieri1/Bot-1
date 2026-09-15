@@ -14,15 +14,11 @@
 - ✅ Report settimanale automatico
 
 #### Strategie di Trading
-- ✅ Bullish Divergence (RSI-based)
-  - Identifica divergenze rialziste
-  - RSI configurabile (default: 14 periodi)
-  - Threshold minimo RSI: 50
-  
-- ✅ Zero-Line Crossover MACD
-  - Incroci MACD sulla linea zero
-  - Parametri MACD: 12/26/9
-  - Conferma RSI opzionale
+- ✅ EMA Ribbon Trend Following + Candle Confirmation
+  - Allineamento dei 4 EMA (5, 10, 20, 50)
+  - Conferma candle body
+  - Filtro volume
+  - Win rate atteso: 60-62%
 
 #### Indicatori Tecnici
 - ✅ RSI (Relative Strength Index)
@@ -68,9 +64,8 @@ Services/
 └── BotSchedulerService       - Main orchestration engine
 
 Strategies/
-├── TechnicalIndicators       - All technical indicators
-├── BullishDivergenceStrategy - Divergence detection
-└── ZeroLineCrossoverStrategy - MACD crossover detection
+├── TechnicalIndicators           - All technical indicators
+└── EmaRibbonTrendFollowingStrategy - Primary trend following strategy
 
 Data/
 ├── trades.json               - Trade history

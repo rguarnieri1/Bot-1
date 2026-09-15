@@ -128,7 +128,7 @@ public class SyntheticBacktest
                     CloseTime = closeTime,
                     EntryPrice = entryPrice,
                     ExitPrice = exitPrice,
-                    Strategy = t % 2 == 0 ? "Bullish Divergence V2" : "Zero-Line Crossover V2",
+                    Strategy = "EMA Ribbon Trend Following (Primary)",
                     Status = "Closed",
                     Profit = exitPrice - entryPrice,
                     ProfitPercentage = ((exitPrice - entryPrice) / entryPrice) * 100
@@ -177,10 +177,9 @@ public class SyntheticBacktest
         Console.WriteLine($"   • Max Consecutive Losses: {result.Metrics.MaxConsecutiveLosses}");
 
         Console.WriteLine($"\n📊 STRATEGY DISTRIBUTION:");
-        var bullishCount = result.Trades.Count(t => t.Strategy.Contains("Bullish"));
-        var macdCount = result.Trades.Count(t => t.Strategy.Contains("Zero"));
-        Console.WriteLine($"   • Bullish Divergence: {bullishCount} ({(decimal)bullishCount / result.Trades.Count * 100:F1}%)");
-        Console.WriteLine($"   • Zero-Line Crossover: {macdCount} ({(decimal)macdCount / result.Trades.Count * 100:F1}%)");
+        var emaCount = result.Trades.Count(t => t.Strategy.Contains("EMA"));
+        if (result.Trades.Count > 0)
+            Console.WriteLine($"   • EMA Ribbon Trend Following: {emaCount} ({(decimal)emaCount / result.Trades.Count * 100:F1}%)");
 
         Console.WriteLine($"\n📈 ANNUALIZED METRICS:");
         var annualizedROI = result.Metrics.ROI * (365m / result.DaysOfData);

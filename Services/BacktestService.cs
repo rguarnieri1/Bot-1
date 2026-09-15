@@ -7,15 +7,11 @@ namespace BotCripto.Services;
 public class BacktestService
 {
     private readonly CryptoDataService _dataService;
-    // private readonly BullishDivergenceStrategy _bullishStrategy;
-    // private readonly ZeroLineCrossoverStrategy _crossoverStrategy;
     private readonly RiskManager _riskManager;
 
     public BacktestService(decimal initialCapital = 1000m)
     {
         _dataService = new CryptoDataService();
-        // _bullishStrategy = new BullishDivergenceStrategy();
-        // _crossoverStrategy = new ZeroLineCrossoverStrategy();
         _riskManager = new RiskManager(
             initialCapital,
             riskPercentPerTrade: 0.01m,
@@ -85,77 +81,6 @@ public class BacktestService
                 {
                     var currentCandle = candlesInRange[i];
                     var lookbackCandles = candlesInRange.Take(i + 1).ToList();
-
-                    // 1️⃣ BULLISH DIVERGENCE (Strategy not implemented in current version)
-                    // var bullishResult = _bullishStrategy.Analyze(symbol, lookbackCandles);
-                    var bullishResult = new AnalysisResult { IsSignal = false };
-
-                    if (false) // bullishResult.IsSignal - disabled
-                    {
-                        var positionResult = _riskManager.CalculatePosition(
-                            symbol,
-                            currentCandle.Close,
-                            volatility,
-                            backtestResult.Trades.Where(t => t.Status == "Open").ToList(),
-                            backtestResult.InitialCapital
-                        );
-
-                        if (positionResult.IsValid)
-                        {
-                            bullishResult.Indicators["PositionSize"] = positionResult.PositionSize;
-                            bullishResult.Indicators["RiskRewardRatio"] = positionResult.RiskRewardRatio;
-
-                            backtestResult.AnalysisResults.Add(bullishResult);
-                            backtestResult.Trades.Add(new Trade
-                            {
-                                Symbol = symbol,
-                                OpenTime = currentCandle.Time,
-                                EntryPrice = currentCandle.Close,
-                                Strategy = "Bullish Divergence V2",
-                                Status = "Open"
-                            });
-
-                            totalSignals++;
-                        }
-                        else
-                        {
-                            totalFiltered++;
-                        }
-                    }
-
-                    // 2️⃣ ZERO-LINE CROSSOVER (Strategy not implemented in current version)
-                    // var crossoverResult = _crossoverStrategy.Analyze(symbol, lookbackCandles);
-                    var crossoverResult = new AnalysisResult { IsSignal = false };
-
-                    if (false && !bullishResult.IsSignal) // crossoverResult.IsSignal - disabled
-                    {
-                        var positionResult = _riskManager.CalculatePosition(
-                            symbol,
-                            currentCandle.Close,
-                            volatility,
-                            backtestResult.Trades.Where(t => t.Status == "Open").ToList(),
-                            backtestResult.InitialCapital
-                        );
-
-                        if (positionResult.IsValid)
-                        {
-                            backtestResult.AnalysisResults.Add(crossoverResult);
-                            backtestResult.Trades.Add(new Trade
-                            {
-                                Symbol = symbol,
-                                OpenTime = currentCandle.Time,
-                                EntryPrice = currentCandle.Close,
-                                Strategy = "Zero-Line Crossover V2",
-                                Status = "Open"
-                            });
-
-                            totalSignals++;
-                        }
-                        else
-                        {
-                            totalFiltered++;
-                        }
-                    }
                 }
 
                 Console.WriteLine($"   ✅ Completato");
@@ -282,10 +207,9 @@ public class BacktestService
         sb.AppendLine($"   • Max Consecutive Losses: {result.Metrics.MaxConsecutiveLosses}");
 
         sb.AppendLine($"\n🔄 TRADE DISTRIBUTION:");
-        var bullishTrades = result.Trades.Count(t => t.Strategy.Contains("Bullish"));
-        var macdTrades = result.Trades.Count(t => t.Strategy.Contains("Zero-Line"));
-        sb.AppendLine($"   • Bullish Divergence: {bullishTrades} ({(decimal)bullishTrades / result.Metrics.TotalTrades * 100:F1}%)");
-        sb.AppendLine($"   • Zero-Line Crossover: {macdTrades} ({(decimal)macdTrades / result.Metrics.TotalTrades * 100:F1}%)");
+        var emaTrades = result.Trades.Count(t => t.Strategy.Contains("EMA"));
+        if (result.Metrics.TotalTrades > 0)
+            sb.AppendLine($"   • EMA Ribbon Trend Following: {emaTrades} ({(decimal)emaTrades / result.Metrics.TotalTrades * 100:F1}%)");
 
         sb.AppendLine($"\n📊 ANNUALIZED METRICS (se estrapoli a 12 mesi):");
         var daysDuration = (result.EndDate - result.StartDate).Days;

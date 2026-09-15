@@ -29,8 +29,6 @@ async Task RunLiveAsync()
     Console.WriteLine("     • Win Rate Atteso: 60-62%");
     Console.WriteLine("     • Configurazione: EMA 5, 10, 20, 50");
     Console.WriteLine("     • Filtri: Volume, Candle Body, RSI, Breakout Confirmation");
-    Console.WriteLine("\nStrategie Backup:");
-    Console.WriteLine("  • Bullish Divergence V2 (Optimized) - se EMA non genera segnali");
     Console.WriteLine("\nImpostazioni:");
     Console.WriteLine("  • Capitale Iniziale: €150.00");
     Console.WriteLine("  • Intervallo Monitoraggio: 5 minuti");
