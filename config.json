@@ -17,7 +17,7 @@
   "monitoring": {
     "intervalMinutes": 15,
     "enableNotifications": true,
-    "maxCryptocurrenciesToAnalyze": 25,
+    "maxCryptocurrenciesToAnalyze": 500,
     "candleTimeframe": "4h",
     "candlesLookback": 100,
     "minVolumeFilter": true,
