@@ -18,7 +18,7 @@ public class NotificationService
     private readonly bool _emailOnSignal;
     private readonly bool _emailOnTrade;
     private readonly bool _emailOnError;
-    private readonly JsonElement? _notificationSettings;
+    private readonly Dictionary<string, JsonElement>? _notificationSettings;
 
     public NotificationService()
     {
@@ -42,8 +42,8 @@ public class NotificationService
         {
             _emailTo = emailToStr.Split(';').Select(e => e.Trim()).ToList();
         }
-        else if (_notificationSettings.HasValue &&
-                 _notificationSettings.Value.TryGetProperty("EmailToAddresses", out var toArray) &&
+        else if (_notificationSettings != null &&
+                 _notificationSettings.TryGetValue("EmailToAddresses", out var toArray) &&
                  toArray.ValueKind == JsonValueKind.Array)
         {
             _emailTo = toArray.EnumerateArray()
@@ -57,29 +57,43 @@ public class NotificationService
         }
     }
 
-    private static JsonElement? LoadNotificationSettingsFromAppsettings()
+    private static Dictionary<string, JsonElement>? LoadNotificationSettingsFromAppsettings()
     {
-        try
-        {
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
-            if (!File.Exists(path))
-            {
-                path = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
-            }
-            if (!File.Exists(path))
-            {
-                return null;
-            }
+        var merged = new Dictionary<string, JsonElement>();
 
-            using var doc = JsonDocument.Parse(File.ReadAllText(path));
-            if (doc.RootElement.TryGetProperty("Notifications", out var notifications))
+        void MergeFrom(string directory)
+        {
+            foreach (var fileName in new[] { "appsettings.json", "appsettings.local.json" })
             {
-                return notifications.Clone();
+                var path = Path.Combine(directory, fileName);
+                if (!File.Exists(path))
+                {
+                    continue;
+                }
+
+                try
+                {
+                    using var doc = JsonDocument.Parse(File.ReadAllText(path));
+                    if (doc.RootElement.TryGetProperty("Notifications", out var notifications) &&
+                        notifications.ValueKind == JsonValueKind.Object)
+                    {
+                        foreach (var prop in notifications.EnumerateObject())
+                        {
+                            merged[prop.Name] = prop.Value.Clone();
+                        }
+                    }
+                }
+                catch { }
             }
         }
-        catch { }
 
-        return null;
+        MergeFrom(AppDomain.CurrentDomain.BaseDirectory);
+        if (merged.Count == 0)
+        {
+            MergeFrom(Directory.GetCurrentDirectory());
+        }
+
+        return merged.Count > 0 ? merged : null;
     }
 
     public async Task SendNotificationAsync(AnalysisResult result)
@@ -439,8 +453,8 @@ $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
         }
 
         if (!string.IsNullOrEmpty(jsonKey) &&
-            _notificationSettings.HasValue &&
-            _notificationSettings.Value.TryGetProperty(jsonKey, out var prop) &&
+            _notificationSettings != null &&
+            _notificationSettings.TryGetValue(jsonKey, out var prop) &&
             prop.ValueKind == JsonValueKind.String)
         {
             return prop.GetString() ?? defaultValue;
@@ -457,8 +471,8 @@ $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
             return bool.Parse(envValue);
         }
 
-        if (_notificationSettings.HasValue &&
-            _notificationSettings.Value.TryGetProperty(jsonKey, out var prop) &&
+        if (_notificationSettings != null &&
+            _notificationSettings.TryGetValue(jsonKey, out var prop) &&
             (prop.ValueKind == JsonValueKind.True || prop.ValueKind == JsonValueKind.False))
         {
             return prop.GetBoolean();
@@ -475,8 +489,8 @@ $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
             return int.Parse(envValue);
         }
 
-        if (_notificationSettings.HasValue &&
-            _notificationSettings.Value.TryGetProperty(jsonKey, out var prop) &&
+        if (_notificationSettings != null &&
+            _notificationSettings.TryGetValue(jsonKey, out var prop) &&
             prop.ValueKind == JsonValueKind.Number)
         {
             return prop.GetInt32();
