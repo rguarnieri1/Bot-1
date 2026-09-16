@@ -43,7 +43,7 @@ appsettings.json / appsettings.local.json    Configurazione runtime (.NET), incl
 - **`Cryptocurrency`**: `Symbol`, `Name`, `MarketCap`, `CurrentPrice`, `LastUpdate`.
 - **`Candle`**: `Time`, `Open`, `High`, `Low`, `Close`, `Volume`.
 - **`AnalysisResult`**: esito dell'analisi di una strategia su un simbolo — `Symbol`, `StrategyName`, `IsSignal`, `Signal` (testo descrittivo, incluso il motivo di rigetto), `CurrentPrice`, `AnalysisTime`, `Indicators` (dizionario nome→valore usato per portare EMA, RSI, stop loss, target, ecc.).
-- **`Trade`**: rappresenta un'operazione — `Id` (GUID), `Symbol`, `OpenTime`, `CloseTime`, `EntryPrice`, `ExitPrice`, `Strategy`, `Status` (`Open`/`Closed`), `Profit`, `ProfitPercentage`.
+- **`Trade`**: rappresenta un'operazione — `Id` (stringa, di default `Guid.NewGuid().ToString()` ma sovrascrivibile, es. `SyntheticBacktest` usa id testuali tipo `"BTC_0"`), `Symbol`, `OpenTime`, `CloseTime`, `EntryPrice`, `ExitPrice`, `Strategy`, `Status` (`Open`/`Closed`), `Profit`, `ProfitPercentage`.
 
 ## 5. Strategia di trading
 
@@ -109,7 +109,7 @@ Caratteristiche:
 - Rate limiting semplice tra chiamate API (100ms minimo, `RateLimitDelay`).
 - Timeframe supportati: `1m, 5m, 15m, 30m, 1h, 4h, 1d` (mappati ai formati specifici di ciascun exchange).
 - Le candele Bybit vengono ordinate e limitate; le candele minime richieste per l'analisi sono 50.
-- I ticker Bybit vengono ordinati per prezzo decrescente e limitati a 500.
+- I ticker Bybit vengono ordinati per prezzo decrescente e limitati (in codice) a 500, ma la richiesta HTTP a Bybit specifica `limit=200`, quindi il numero effettivo restituito non supera 200.
 
 ## 8. Gestione del rischio (`Services/RiskManager.cs`)
 
