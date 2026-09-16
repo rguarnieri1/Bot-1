@@ -18,7 +18,7 @@ public class BacktestService
             rewardRiskRatio: 2.0m,
             maxPositionSizePercent: 0.10m,
             maxLeverage: 1.5m,
-            commissionsPercent: 0.10m,
+            commissionsPercent: 0.8m,
             taxRate: 0.26m
         );
     }

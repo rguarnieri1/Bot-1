@@ -17,7 +17,7 @@ public class SyntheticBacktest
             rewardRiskRatio: 2.0m,
             maxPositionSizePercent: 0.10m,
             maxLeverage: 1.5m,
-            commissionsPercent: 0.10m,
+            commissionsPercent: 0.8m,
             taxRate: 0.26m
         );
         _random = new Random(42);  // Seed per reproducibilità
