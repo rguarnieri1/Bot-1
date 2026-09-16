@@ -4,7 +4,7 @@ Documentazione tecnica basata sul codice sorgente attuale del progetto `1 - Bot 
 
 ## 1. Panoramica
 
-Bot 1 è un'applicazione console .NET 8 per il trading automatico di criptovalute. Analizza periodicamente un ampio paniere di crypto, applica una strategia trend-following basata su EMA Ribbon, valida ogni segnale con un modulo di risk management e notifica l'utente (console, desktop toast, email). Include anche due modalità di backtest (una "reale" basata su candele storiche e una sintetica basata su distribuzioni statistiche).
+Bot 1 è un'applicazione console .NET 8 per il trading automatico di criptovalute. Analizza periodicamente un ampio paniere di crypto (filtrato per capitalizzazione ≥ $1B tramite CoinGecko), applica una strategia trend-following basata su EMA Ribbon, valida ogni segnale con un modulo di risk management e notifica l'utente (console, desktop toast, email). Include anche due modalità di backtest (una "reale" basata su candele storiche e una sintetica basata su distribuzioni statistiche).
 
 Punto di ingresso: `Program.cs`.
 
@@ -99,17 +99,23 @@ Libreria statica condivisa:
 
 ## 7. Recupero dati di mercato (`Services/CryptoDataService.cs`)
 
-Catena di fallback a tre livelli, sia per il ticker che per le candele:
+`GetLargeCapCryptocurrenciesAsync()` combina due catene di fallback: una per il ticker/prezzo e una per le capitalizzazioni, che vengono poi incrociate.
 
+**Ticker** — catena di fallback a tre livelli:
 1. **Crypto.com API** (`https://api.crypto.com/v2/public/get-ticker`, `get-candlestick`) — sorgente primaria.
 2. **Bybit API** (`https://api.bybit.com/v5/market/tickers`, `market/kline`, categoria `spot`) — fallback se Crypto.com fallisce o non risponde.
-3. **Dati demo hardcoded** — se entrambe le API falliscono: lista statica di ~50 crypto (`GetDemoData`) per i ticker, e candele generate casualmente con random walk (`GenerateDemoCandles`) per le serie storiche.
+3. **Dati demo hardcoded** — se entrambe le API falliscono: lista statica di ~50 crypto (`GetDemoData`) per i ticker, e candele generate casualmente con random walk (`GenerateDemoCandles`) per le serie storiche. Nota: la modalità demo non passa dal filtro di capitalizzazione (viene ritornata direttamente).
 
-Caratteristiche:
-- Rate limiting semplice tra chiamate API (100ms minimo, `RateLimitDelay`).
-- Timeframe supportati: `1m, 5m, 15m, 30m, 1h, 4h, 1d` (mappati ai formati specifici di ciascun exchange).
+**Filtro capitalizzazione via CoinGecko** (`GetMarketCapsAsync` + `FilterByMarketCap`):
+- Prima di interrogare Crypto.com/Bybit, il servizio scarica le capitalizzazioni da `GET https://api.coingecko.com/api/v3/coins/markets` (2 pagine da 250 risultati, ordinate per market cap decrescente → fino a 500 simboli), costruendo un dizionario simbolo→market cap (case-insensitive, primo valore vince in caso di duplicati).
+- I ticker ottenuti da Crypto.com o Bybit vengono poi filtrati tenendo solo i simboli presenti nel dizionario con `MarketCap >= $1.000.000.000` (costante `MinMarketCapUsd`, non letta da `config.json`), e il campo `Cryptocurrency.MarketCap` viene valorizzato con il dato reale di CoinGecko (prima di questa modifica il campo esisteva nel modello ma restava sempre a zero).
+- Se CoinGecko non è raggiungibile o non risponde entro i tentativi previsti, il dizionario risulta vuoto e il filtro viene **saltato per quel ciclo** (vengono restituiti tutti i ticker non filtrati, con `MarketCap` a zero), con un warning in console.
+
+Caratteristiche generali:
+- Rate limiting semplice tra chiamate API (100ms minimo, `RateLimitDelay`), applicato anche alle chiamate CoinGecko.
+- Timeframe supportati per le candele: `1m, 5m, 15m, 30m, 1h, 4h, 1d` (mappati ai formati specifici di ciascun exchange).
 - Le candele Bybit vengono ordinate e limitate; le candele minime richieste per l'analisi sono 50.
-- I ticker Bybit vengono ordinati per prezzo decrescente e limitati (in codice) a 500, ma la richiesta HTTP a Bybit specifica `limit=200`, quindi il numero effettivo restituito non supera 200.
+- I ticker Crypto.com/Bybit vengono ordinati per prezzo decrescente e limitati (in codice) a 500 **prima** del filtro di capitalizzazione; per Bybit la richiesta HTTP specifica comunque `limit=200`, quindi il numero effettivo restituito non supera 200 anche a filtro disattivato.
 
 ## 8. Gestione del rischio (`Services/RiskManager.cs`)
 
@@ -171,7 +177,7 @@ Effettivamente letti dal codice (sezione `Notifications` da `NotificationService
 
 ### 12.2 `config.json`
 
-File di configurazione "di progetto" con schema più ampio (strategie, risk management, reporting, storage, API, ottimizzazioni) — **non referenziato da alcuna classe C#** nel codice attuale. Da considerare come specifica/riferimento per future estensioni, non come sorgente di configurazione runtime.
+File di configurazione "di progetto" con schema più ampio (strategie, risk management, reporting, storage, API, ottimizzazioni) — **non referenziato da alcuna classe C#** nel codice attuale. Da considerare come specifica/riferimento per future estensioni, non come sorgente di configurazione runtime. Anche la soglia di capitalizzazione minima usata dal filtro CoinGecko (§7) è hardcoded in `CryptoDataService` (`MinMarketCapUsd = $1B`) e non proviene da questo file.
 
 ## 13. Dipendenze principali (`1 - Bot Cripto.csproj`)
 
@@ -186,3 +192,4 @@ File di configurazione "di progetto" con schema più ampio (strategie, risk mana
 - `BacktestService.RunBacktestAsync` non esegue realmente l'analisi della strategia sui dati storici (ciclo placeholder); solo `SyntheticBacktest` produce risultati end-to-end, ma basati su dati simulati anziché su prezzi reali.
 - I livelli RSI di ipercomprato/ipervenduto dichiarati come campo (`70/30`) non corrispondono alle soglie realmente applicate nei controlli di rigetto (`85/15`).
 - Il banner di avvio in `Program.cs` (`RunLiveAsync`) stampa "Risk per Trade: 1% (€1.50)", ma `BotSchedulerService` passa realmente `riskPercentPerTrade: 0.02m` (2%) al `RiskManager`: il testo mostrato all'utente non riflette il rischio effettivamente applicato.
+- Il filtro di capitalizzazione (§7) dipende da CoinGecko, un terzo provider aggiuntivo rispetto a Crypto.com/Bybit già usati per prezzi e candele: se CoinGecko è irraggiungibile o applica rate limiting, il filtro viene silenziosamente disattivato per il ciclo (nessun retry, nessun backoff), quindi in quel ciclo possono passare anche crypto a bassa capitalizzazione.
