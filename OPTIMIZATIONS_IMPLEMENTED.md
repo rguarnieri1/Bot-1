@@ -270,8 +270,6 @@ Weekly Report ora include:
 ```
 Codice Aggiunto:
 ├─ RiskManager.cs: 300+ righe (nuovo)
-├─ BullishDivergenceStrategy V2: +50 righe
-├─ ZeroLineCrossoverStrategy V2: +40 righe
 ├─ BotSchedulerService: +100 righe
 └─ config.json: +40 parametri
 

@@ -58,8 +58,7 @@ Bot di trading automatico che monitora le criptovalute e identifica opportunità
 │        │   ├─ EMA
 │        │   ├─ SMA
 │        │   └─ Bollinger Bands
-│        ├── BullishDivergenceStrategy.cs # Strategia 1
-│        └── ZeroLineCrossoverStrategy.cs # Strategia 2
+│        └── EmaRibbonTrendFollowingStrategy.cs # Strategia principale
 │
 └─── 💾 RUNTIME (Auto-generato)
      │

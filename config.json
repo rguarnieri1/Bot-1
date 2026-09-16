@@ -38,24 +38,6 @@
       "expectedWinRate": 0.61,
       "expectedRiskReward": 2.0,
       "description": "Trend-following strategy using EMA ribbon alignment with candle confirmation and volume analysis"
-    },
-    "zeroLineCrossover": {
-      "enabled": false,
-      "version": 2,
-      "name": "Zero-Line Crossover V2",
-      "macdFastPeriod": 12,
-      "macdSlowPeriod": 26,
-      "macdSignalPeriod": 9,
-      "histogramStrengthMin": 0.05,
-      "trendFilter": true,
-      "trendFilterSMA20": 20,
-      "trendFilterSMA50": 50,
-      "rsiConfirmation": true,
-      "rsiThresholdMin": 35,
-      "rsiThresholdMax": 65,
-      "expectedWinRate": 0.56,
-      "expectedRiskReward": 2.0,
-      "priority": "disabled"
     }
   },
   "riskManagement": {

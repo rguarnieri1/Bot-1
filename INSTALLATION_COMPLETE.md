@@ -143,8 +143,7 @@ dotnet run
 │  │  └── BotSchedulerService.cs
 │  └── Strategies/
 │     ├── TechnicalIndicators.cs
-│     ├── BullishDivergenceStrategy.cs
-│     └── ZeroLineCrossoverStrategy.cs
+│     └── EmaRibbonTrendFollowingStrategy.cs
 │
 └─ 💾 AUTO-GENERATO (runtime)
    ├── Data/

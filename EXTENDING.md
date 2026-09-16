@@ -61,8 +61,7 @@ public BotSchedulerService()
     _dataService = new CryptoDataService();
     _notificationService = new NotificationService();
     _reportingService = new ReportingService();
-    _bullishStrategy = new BullishDivergenceStrategy();
-    _crossoverStrategy = new ZeroLineCrossoverStrategy();
+    _emaRibbonStrategy = new EmaRibbonTrendFollowingStrategy();
     _miaStrategy = new MiaStrategyStrategy();  // Aggiungi questa riga
 }
 
@@ -72,7 +71,7 @@ private async Task CheckMarketAsync()
     
     // Aggiungi questa sezione nella loop di analisi
     var miaResult = _miaStrategy.Analyze(crypto.Symbol, candles);
-    if (miaResult.IsSignal && !bullishResult.IsSignal && !crossoverResult.IsSignal)
+    if (miaResult.IsSignal && !emaRibbonResult.IsSignal)
     {
         await _notificationService.SendNotificationAsync(miaResult);
         _reportingService.RecordTrade(crypto.Symbol, crypto.CurrentPrice, "Mia Strategy");
@@ -244,7 +243,7 @@ Per testare una nuova strategia prima di attivarla:
 public class AnalysisResult
 {
     public string Symbol { get; set; }                    // es: "BTC"
-    public string StrategyName { get; set; }              // es: "Bullish Divergence"
+    public string StrategyName { get; set; }              // es: "EMA Ribbon Trend Following"
     public bool IsSignal { get; set; }                    // Signal trovato?
     public string Signal { get; set; }                    // "BUY" o "SELL"
     public decimal CurrentPrice { get; set; }             // Prezzo attuale

@@ -43,17 +43,17 @@ Documentazione architetturale e flussi dati del bot.
      └──────────────────┘ │ • BB (20/2)       │   │
                           └──────┬────────────┘   │
                                  │                │
-                   ┌─────────────┬┴────────────────┴─────────┐
-                   │             │                          │
-        ┌──────────▼────────┐ ┌──▼──────────────┐ ┌────────▼───┐
-        │ BullishDivergence │ │ MACD Crossover  │ │ Reporting  │
-        │ Strategy          │ │ Strategy        │ │ Service    │
-        │                   │ │                 │ │            │
-        │ Signals: BUY      │ │ Signals: BUY/   │ │ • Save     │
-        │                   │ │ SELL            │ │   trades   │
-        └───────────────────┘ └─────────────────┘ │ • Stats    │
-                                                  │ • Report   │
-                                                  └────────────┘
+                   ┌─────────────────────────────┴─────────┐
+                   │                                       │
+        ┌──────────▼──────────────┐              ┌────────▼───┐
+        │ EmaRibbonTrendFollowing │              │ Reporting  │
+        │ Strategy                 │              │ Service    │
+        │                           │              │            │
+        │ Signals: BUY/SELL         │              │ • Save     │
+        │                           │              │   trades   │
+        └───────────────────────────┘              │ • Stats    │
+                                                   │ • Report   │
+                                                   └────────────┘
 
                          ┌──────────────────┐
                          │  File Storage    │
@@ -93,17 +93,11 @@ Documentazione architetturale e flussi dati del bot.
     │ ┌──────────▼───────────────┐    │
     │ │ Analyze with Strategies   │    │
     │ │                           │    │
-    │ │ 1. BullishDivergence.     │    │
-    │ │    Analyze()              │    │
-    │ │    ├─ Calc RSI            │    │
-    │ │    ├─ Find divergences    │    │
-    │ │    └─ Return signal (Y/N) │    │
-    │ │                           │    │
-    │ │ 2. ZeroLineCrossover.     │    │
-    │ │    Analyze()              │    │
-    │ │    ├─ Calc MACD           │    │
-    │ │    ├─ Find crossovers     │    │
-    │ │    ├─ Calc RSI (confirm)  │    │
+    │ │ 1. EmaRibbonTrendFollowing│    │
+    │ │    .Analyze()             │    │
+    │ │    ├─ Calc EMA Ribbon     │    │
+    │ │    ├─ Check trend/volume/ │    │
+    │ │    │  candle/RSI filters  │    │
     │ │    └─ Return signal (Y/N) │    │
     │ │                           │    │
     │ └──────────┬───────────────┘    │
@@ -188,8 +182,7 @@ Documentazione architetturale e flussi dati del bot.
 
 **Dipendenze**:
 - CryptoDataService
-- BullishDivergenceStrategy
-- ZeroLineCrossoverStrategy
+- EmaRibbonTrendFollowingStrategy
 - NotificationService
 - ReportingService
 
@@ -229,17 +222,12 @@ public AnalysisResult Analyze(string symbol, List<Candle> candles)
 }
 ```
 
-**BullishDivergenceStrategy**:
-- Calcola RSI
-- Trova minimi locali nel prezzo
-- Cerca divergenza con RSI
-- Ritorna BUY se divergenza bullish trovata
-
-**ZeroLineCrossoverStrategy**:
-- Calcola MACD
-- Rileva incroci sulla linea zero
-- Opzionale: conferma con RSI
-- Ritorna BUY/SELL su crossover
+**EmaRibbonTrendFollowingStrategy**:
+- Calcola EMA Ribbon (5, 10, 20, 50)
+- Verifica allineamento del trend (uptrend/downtrend)
+- Filtra per volume e conferma della candela
+- Filtra per RSI e conferma il breakout
+- Ritorna BUY/SELL se tutti i filtri passano
 
 **Pattern Vantaggi**:
 - Facile aggiungere nuove strategie
@@ -354,8 +342,7 @@ Trade {
 │ - _dataService: CryptoDataService
 │ - _notifyService: NotifyService │
 │ - _reportService: ReportService │
-│ - _bullishStrategy: Strategy    │
-│ - _crossoverStrategy: Strategy  │
+│ - _emaRibbonStrategy: Strategy  │
 ├─────────────────────────────────┤
 │ + StartAsync(): Task            │
 │ + Stop(): void                  │
@@ -500,14 +487,9 @@ Configuration centralized in `config.json`:
     "candlesLookback": 100
   },
   "strategies": {
-    "bullishDivergence": {
-      "rsiPeriod": 14,
-      "lookbackPeriods": 5
-    },
-    "zeroLineCrossover": {
-      "macdFastPeriod": 12,
-      "macdSlowPeriod": 26,
-      "macdSignalPeriod": 9
+    "emaRibbonTrendFollowing": {
+      "emaPeriods": [5, 10, 20, 50],
+      "volumeMultiplierThreshold": 1.2
     }
   }
 }

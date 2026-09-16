@@ -210,8 +210,7 @@ PARAMETRI CONSERVATIVI:
 🔧 Codice:
    • Services/RiskManager.cs - Gestione rischio
    • Services/BotSchedulerService.cs - Orchestrazione
-   • Strategies/BullishDivergenceStrategy.cs - Strategia 1
-   • Strategies/ZeroLineCrossoverStrategy.cs - Strategia 2
+   • Strategies/EmaRibbonTrendFollowingStrategy.cs - Strategia principale
 
 ================================================================================
                     DISCLAIMER IMPORTANTE
