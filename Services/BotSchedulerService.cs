@@ -9,8 +9,6 @@ public class BotSchedulerService
     private readonly NotificationService _notificationService;
     private readonly ReportingService _reportingService;
     private readonly EmaRibbonTrendFollowingStrategy _emaRibbonStrategy;
-    // private readonly BullishDivergenceStrategy _bullishStrategy;
-    // private readonly ZeroLineCrossoverStrategy _crossoverStrategy;
     private readonly RiskManager _riskManager;
     private Timer? _marketCheckTimer;
     private Timer? _weeklyReportTimer;
@@ -27,15 +25,13 @@ public class BotSchedulerService
         _notificationService = new NotificationService();
         _reportingService = new ReportingService();
         _emaRibbonStrategy = new EmaRibbonTrendFollowingStrategy();
-        // _bullishStrategy = new BullishDivergenceStrategy();
-        // _crossoverStrategy = new ZeroLineCrossoverStrategy();
         _riskManager = new RiskManager(
             initialCapital,
             riskPercentPerTrade: 0.02m,      // 2% rischio per trade
             rewardRiskRatio: 2.0m,            // 2:1 R:R
             maxPositionSizePercent: 0.10m,    // Max 10% per trade
             maxLeverage: 2.0m,                // Max 2.0x leva
-            commissionsPercent: 0.10m,        // 0.1% commissioni
+            commissionsPercent: 0.8m,         // 0.8% commissioni
             taxRate: 0.26m                    // 26% tasse
         );
 
@@ -52,17 +48,17 @@ public class BotSchedulerService
 
         _isRunning = true;
         Console.WriteLine("\n🤖 Bot Cripto avviato!");
-        Console.WriteLine("📊 Monitoraggio ogni 5 minuti...\n");
+        Console.WriteLine("📊 Monitoraggio ogni 60 minuti...\n");
 
         // Esegui il primo controllo immediatamente
         await CheckMarketAsync();
 
-        // Timer per il controllo ogni 5 minuti (300000 ms)
+        // Timer per il controllo ogni 60 minuti
         _marketCheckTimer = new Timer(
             async _ => await CheckMarketAsync(),
             null,
-            TimeSpan.FromMinutes(5),
-            TimeSpan.FromMinutes(5));
+            TimeSpan.FromMinutes(60),
+            TimeSpan.FromMinutes(60));
 
         // Timer per il report settimanale (ogni lunedì alle 00:00)
         var now = DateTime.UtcNow;
@@ -159,48 +155,7 @@ public class BotSchedulerService
                         }
                     }
 
-                    // 2️⃣ Bullish Divergence V2 (Strategy not implemented in current version)
-                    // Non eseguire se già trovato segnale con EMA Ribbon
-                    if (false) // !emaRibbonResult.IsSignal - disabled
-                    {
-                        var bullishResult = new AnalysisResult { IsSignal = false }; // _bullishStrategy.Analyze(crypto.Symbol, candles);
-
-                        if (bullishResult.IsSignal)
-                        {
-                            // Valida con RiskManager
-                            var positionResult = _riskManager.CalculatePosition(
-                                crypto.Symbol,
-                                crypto.CurrentPrice,
-                                volatilityPercent,
-                                openTrades,
-                                _currentAccountValue
-                            );
-
-                            if (positionResult.IsValid)
-                            {
-                                bullishResult.Indicators["PositionSize"] = positionResult.PositionSize;
-                                bullishResult.Indicators["RiskRewardRatio"] = positionResult.RiskRewardRatio;
-                                bullishResult.Indicators["Leverage"] = positionResult.LeverageRatio;
-                                bullishResult.Indicators["ExpectedProfit"] = positionResult.ExpectedProfit;
-
-                                await _notificationService.SendNotificationAsync(bullishResult);
-                                _reportingService.RecordTrade(
-                                    crypto.Symbol,
-                                    crypto.CurrentPrice,
-                                    "Bullish Divergence V2 (Backup)");
-
-                                _signalsGenerated++;
-                                _tradesRecorded++;
-                                signalsFound++;
-                            }
-                            else
-                            {
-                                signalsFiltered++;
-                            }
-                        }
-                    }
-
-                    await Task.Delay(50);  // Delay più breve
+                    await Task.Delay(50);
                 }
                 catch (Exception ex)
                 {

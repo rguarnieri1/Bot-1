@@ -11,13 +11,13 @@
     "maxPositionSize": 0.10,
     "maxLeverage": 1.5,
     "rewardRiskRatio": 2.0,
-    "commissionsPercent": 0.10,
+    "commissionsPercent": 0.8,
     "taxRate": 0.26
   },
   "monitoring": {
-    "intervalMinutes": 15,
+    "intervalMinutes": 60,
     "enableNotifications": true,
-    "maxCryptocurrenciesToAnalyze": 25,
+    "maxCryptocurrenciesToAnalyze": 500,
     "candleTimeframe": "4h",
     "candlesLookback": 100,
     "minVolumeFilter": true,
@@ -38,22 +38,6 @@
       "expectedWinRate": 0.61,
       "expectedRiskReward": 2.0,
       "description": "Trend-following strategy using EMA ribbon alignment with candle confirmation and volume analysis"
-    },
-    "bullishDivergence": {
-      "enabled": true,
-      "version": 2,
-      "name": "Bullish Divergence V2",
-      "rsiPeriod": 14,
-      "rsiThreshold": 40,
-      "lookbackPeriods": 8,
-      "trendFilter": true,
-      "trendFilterSMA": 50,
-      "volatilityFilter": true,
-      "atrMinPercent": 0.01,
-      "volumeFilter": true,
-      "expectedWinRate": 0.56,
-      "expectedRiskReward": 2.0,
-      "priority": "backup"
     },
     "zeroLineCrossover": {
       "enabled": false,
