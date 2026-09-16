@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Mail;
+using System.Text.Json;
 using BotCripto.Models;
 
 namespace BotCripto.Services;
@@ -17,26 +18,68 @@ public class NotificationService
     private readonly bool _emailOnSignal;
     private readonly bool _emailOnTrade;
     private readonly bool _emailOnError;
+    private readonly JsonElement? _notificationSettings;
 
     public NotificationService()
     {
         _logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
         Directory.CreateDirectory(_logDirectory);
 
-        // Load email settings from environment or appsettings
-        _emailAlertsEnabled = GetConfigBool("ENABLE_EMAIL_ALERTS", false);
-        _smtpServer = GetConfigString("SMTP_SERVER", "smtp.gmail.com");
-        _smtpPort = GetConfigInt("SMTP_PORT", 587);
-        _emailFrom = GetConfigString("EMAIL_FROM", "");
-        _emailPassword = GetConfigString("EMAIL_APP_PASSWORD", "");
-        _emailOnSignal = GetConfigBool("EMAIL_ON_SIGNAL", true);
-        _emailOnTrade = GetConfigBool("EMAIL_ON_TRADE", true);
-        _emailOnError = GetConfigBool("EMAIL_ON_ERROR", true);
+        _notificationSettings = LoadNotificationSettingsFromAppsettings();
 
-        var emailToStr = GetConfigString("EMAIL_TO", "");
-        _emailTo = string.IsNullOrEmpty(emailToStr)
-            ? new List<string> { _emailFrom }
-            : emailToStr.Split(';').Select(e => e.Trim()).ToList();
+        // Load email settings from environment variables first, falling back to appsettings.json
+        _emailAlertsEnabled = GetConfigBool("ENABLE_EMAIL_ALERTS", "EnableEmailAlerts", false);
+        _smtpServer = GetConfigString("SMTP_SERVER", "EmailSmtpServer", "smtp.gmail.com");
+        _smtpPort = GetConfigInt("SMTP_PORT", "EmailSmtpPort", 587);
+        _emailFrom = GetConfigString("EMAIL_FROM", "EmailFrom", "");
+        _emailPassword = GetConfigString("EMAIL_APP_PASSWORD", "EmailAppPassword", "");
+        _emailOnSignal = GetConfigBool("EMAIL_ON_SIGNAL", "EmailAlertOnSignal", true);
+        _emailOnTrade = GetConfigBool("EMAIL_ON_TRADE", "EmailAlertOnTrade", true);
+        _emailOnError = GetConfigBool("EMAIL_ON_ERROR", "EmailAlertOnError", true);
+
+        var emailToStr = GetConfigString("EMAIL_TO", "", "");
+        if (!string.IsNullOrEmpty(emailToStr))
+        {
+            _emailTo = emailToStr.Split(';').Select(e => e.Trim()).ToList();
+        }
+        else if (_notificationSettings.HasValue &&
+                 _notificationSettings.Value.TryGetProperty("EmailToAddresses", out var toArray) &&
+                 toArray.ValueKind == JsonValueKind.Array)
+        {
+            _emailTo = toArray.EnumerateArray()
+                .Select(e => e.GetString() ?? "")
+                .Where(s => !string.IsNullOrEmpty(s))
+                .ToList();
+        }
+        else
+        {
+            _emailTo = new List<string> { _emailFrom };
+        }
+    }
+
+    private static JsonElement? LoadNotificationSettingsFromAppsettings()
+    {
+        try
+        {
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
+            if (!File.Exists(path))
+            {
+                path = Path.Combine(Directory.GetCurrentDirectory(), "appsettings.json");
+            }
+            if (!File.Exists(path))
+            {
+                return null;
+            }
+
+            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            if (doc.RootElement.TryGetProperty("Notifications", out var notifications))
+            {
+                return notifications.Clone();
+            }
+        }
+        catch { }
+
+        return null;
     }
 
     public async Task SendNotificationAsync(AnalysisResult result)
@@ -387,20 +430,58 @@ $toast = New-Object Windows.UI.Notifications.ToastNotification $xml
         }
     }
 
-    private string GetConfigString(string key, string defaultValue)
+    private string GetConfigString(string envKey, string jsonKey, string defaultValue)
     {
-        return Environment.GetEnvironmentVariable(key) ?? defaultValue;
+        var envValue = Environment.GetEnvironmentVariable(envKey);
+        if (!string.IsNullOrEmpty(envValue))
+        {
+            return envValue;
+        }
+
+        if (!string.IsNullOrEmpty(jsonKey) &&
+            _notificationSettings.HasValue &&
+            _notificationSettings.Value.TryGetProperty(jsonKey, out var prop) &&
+            prop.ValueKind == JsonValueKind.String)
+        {
+            return prop.GetString() ?? defaultValue;
+        }
+
+        return defaultValue;
     }
 
-    private bool GetConfigBool(string key, bool defaultValue)
+    private bool GetConfigBool(string envKey, string jsonKey, bool defaultValue)
     {
-        var value = Environment.GetEnvironmentVariable(key);
-        return string.IsNullOrEmpty(value) ? defaultValue : bool.Parse(value);
+        var envValue = Environment.GetEnvironmentVariable(envKey);
+        if (!string.IsNullOrEmpty(envValue))
+        {
+            return bool.Parse(envValue);
+        }
+
+        if (_notificationSettings.HasValue &&
+            _notificationSettings.Value.TryGetProperty(jsonKey, out var prop) &&
+            (prop.ValueKind == JsonValueKind.True || prop.ValueKind == JsonValueKind.False))
+        {
+            return prop.GetBoolean();
+        }
+
+        return defaultValue;
     }
 
-    private int GetConfigInt(string key, int defaultValue)
+    private int GetConfigInt(string envKey, string jsonKey, int defaultValue)
     {
-        var value = Environment.GetEnvironmentVariable(key);
-        return string.IsNullOrEmpty(value) ? defaultValue : int.Parse(value);
+        var envValue = Environment.GetEnvironmentVariable(envKey);
+        if (!string.IsNullOrEmpty(envValue))
+        {
+            return int.Parse(envValue);
+        }
+
+        if (_notificationSettings.HasValue &&
+            _notificationSettings.Value.TryGetProperty(jsonKey, out var prop) &&
+            prop.ValueKind == JsonValueKind.Number)
+        {
+            return prop.GetInt32();
+        }
+
+        return defaultValue;
     }
 }
