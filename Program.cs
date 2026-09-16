@@ -31,8 +31,8 @@ async Task RunLiveAsync()
     Console.WriteLine("     • Filtri: Volume, Candle Body, RSI, Breakout Confirmation");
     Console.WriteLine("\nImpostazioni:");
     Console.WriteLine("  • Capitale Iniziale: €150.00");
-    Console.WriteLine("  • Intervallo Monitoraggio: 5 minuti");
-    Console.WriteLine("  • Max Crypto: 25");
+    Console.WriteLine("  • Intervallo Monitoraggio: 60 minuti");
+    Console.WriteLine("  • Max Crypto: 500");
     Console.WriteLine("  • Risk per Trade: 1% (€1.50)");
     Console.WriteLine("  • Max Position Size: 10% (€15.00)");
     Console.WriteLine("  • Report Settimanale: Lunedì 00:00");

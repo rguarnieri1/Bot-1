@@ -98,7 +98,7 @@ public class BotSchedulerService
 
             // Recupera tutte le criptovalute
             var cryptos = await _dataService.GetLargeCapCryptocurrenciesAsync();
-            Console.WriteLine($"📈 Analizzando {cryptos.Count} criptovalute (max 25 per performance)...");
+            Console.WriteLine($"📈 Analizzando {cryptos.Count} criptovalute (max 500 per performance)...");
 
             int signalsFound = 0;
             int signalsFiltered = 0;

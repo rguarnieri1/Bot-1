@@ -145,7 +145,7 @@ public class CryptoDataService
                 }
             }
 
-            return result.Count > 0 ? result.OrderByDescending(c => c.CurrentPrice).Take(200).ToList() : null;
+            return result.Count > 0 ? result.OrderByDescending(c => c.CurrentPrice).Take(500).ToList() : null;
         }
         catch (Exception ex)
         {
