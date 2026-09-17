@@ -4,7 +4,7 @@ Documentazione tecnica basata sul codice sorgente attuale del progetto `1 - Bot 
 
 ## 1. Panoramica
 
-Bot 1 è un'applicazione console .NET 8 per il trading automatico di criptovalute. Analizza periodicamente un ampio paniere di crypto (filtrato per capitalizzazione ≥ $1B tramite CoinGecko), applica una strategia trend-following basata su EMA Ribbon, valida ogni segnale con un modulo di risk management e notifica l'utente (console, desktop toast, email). Include anche due modalità di backtest (una "reale" basata su candele storiche e una sintetica basata su distribuzioni statistiche).
+Bot 1 è un'applicazione console .NET 8 per il trading automatico di criptovalute. Analizza periodicamente un ampio paniere di crypto (filtrato per capitalizzazione ≥ $500.000 tramite CoinGecko), applica una strategia trend-following basata su EMA Ribbon, valida ogni segnale con un modulo di risk management e notifica l'utente (console, desktop toast, email). Include anche due modalità di backtest (una "reale" basata su candele storiche e una sintetica basata su distribuzioni statistiche).
 
 Punto di ingresso: `Program.cs`.
 
@@ -108,7 +108,7 @@ Libreria statica condivisa:
 
 **Filtro capitalizzazione via CoinGecko** (`GetMarketCapsAsync` + `FilterByMarketCap`):
 - Prima di interrogare Crypto.com/Bybit, il servizio scarica le capitalizzazioni da `GET https://api.coingecko.com/api/v3/coins/markets` (2 pagine da 250 risultati, ordinate per market cap decrescente → fino a 500 simboli), costruendo un dizionario simbolo→market cap (case-insensitive, primo valore vince in caso di duplicati).
-- I ticker ottenuti da Crypto.com o Bybit vengono poi filtrati tenendo solo i simboli presenti nel dizionario con `MarketCap >= $1.000.000.000` (costante `MinMarketCapUsd`, non letta da `config.json`), e il campo `Cryptocurrency.MarketCap` viene valorizzato con il dato reale di CoinGecko (prima di questa modifica il campo esisteva nel modello ma restava sempre a zero).
+- I ticker ottenuti da Crypto.com o Bybit vengono poi filtrati tenendo solo i simboli presenti nel dizionario con `MarketCap >= $500.000` (costante `MinMarketCapUsd`, non letta da `config.json`), e il campo `Cryptocurrency.MarketCap` viene valorizzato con il dato reale di CoinGecko (prima di questa modifica il campo esisteva nel modello ma restava sempre a zero).
 - Se CoinGecko non è raggiungibile o non risponde entro i tentativi previsti, il dizionario risulta vuoto e il filtro viene **saltato per quel ciclo** (vengono restituiti tutti i ticker non filtrati, con `MarketCap` a zero), con un warning in console.
 
 Caratteristiche generali:
@@ -177,7 +177,7 @@ Effettivamente letti dal codice (sezione `Notifications` da `NotificationService
 
 ### 12.2 `config.json`
 
-File di configurazione "di progetto" con schema più ampio (strategie, risk management, reporting, storage, API, ottimizzazioni) — **non referenziato da alcuna classe C#** nel codice attuale. Da considerare come specifica/riferimento per future estensioni, non come sorgente di configurazione runtime. Anche la soglia di capitalizzazione minima usata dal filtro CoinGecko (§7) è hardcoded in `CryptoDataService` (`MinMarketCapUsd = $1B`) e non proviene da questo file.
+File di configurazione "di progetto" con schema più ampio (strategie, risk management, reporting, storage, API, ottimizzazioni) — **non referenziato da alcuna classe C#** nel codice attuale. Da considerare come specifica/riferimento per future estensioni, non come sorgente di configurazione runtime. Anche la soglia di capitalizzazione minima usata dal filtro CoinGecko (§7) è hardcoded in `CryptoDataService` (`MinMarketCapUsd = $500.000`) e non proviene da questo file.
 
 ## 13. Dipendenze principali (`1 - Bot Cripto.csproj`)
 
