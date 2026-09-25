@@ -27,7 +27,7 @@ async Task RunLiveAsync()
     Console.WriteLine("Strategia Principale Attiva:");
     Console.WriteLine("  ⭐ EMA Ribbon Trend Following + Candle Confirmation");
     Console.WriteLine("     • Win Rate Atteso: 60-62%");
-    Console.WriteLine("     • Configurazione: EMA 5, 10, 20, 50");
+    Console.WriteLine("     • Configurazione: EMA 5, 10, 20, 40");
     Console.WriteLine("     • Filtri: Volume, Candle Body, RSI, Breakout Confirmation");
     Console.WriteLine("\nImpostazioni:");
     Console.WriteLine("  • Capitale Iniziale: €150.00");

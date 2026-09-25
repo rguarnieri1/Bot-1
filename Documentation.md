@@ -1,6 +1,6 @@
 # Documentazione - Bot 1 (BotCripto v1.1)
 
-Documentazione tecnica basata sul codice sorgente attuale del progetto `1 - Bot Cripto` (namespace `BotCripto`, target `.NET 8.0`).
+Documentazione tecnica basata sul codice sorgente attuale del progetto `1 - Bot Cripto` (namespace `BotCripto`, target `.NET 8.0`). Il repository include anche una copia del progetto portata a `.NET 10.0` nella cartella `net10/` (vedi §15); questo documento descrive il codice della root, identico a quello in `net10/` a parte il target framework.
 
 ## 1. Panoramica
 
@@ -34,6 +34,7 @@ Services/
   SyntheticBacktest.cs                       Backtest sintetico basato su distribuzione statistica
 config.json                                  Configurazione "di progetto" (parametri strategia, risk, reporting)
 appsettings.json / appsettings.local.json    Configurazione runtime (.NET), incl. credenziali email
+net10/                                       Copia integrale del progetto, target .NET 10.0 (vedi §15)
 ```
 
 > Nota: `config.json` e `appsettings.json` sono due file di configurazione paralleli con schema diverso. Solo `appsettings.json`/`appsettings.local.json` vengono effettivamente letti dal codice (sezione `Notifications` in `NotificationService`); `config.json` non risulta referenziato da nessuna classe — sembra un file descrittivo/di riferimento non ancora cablato al codice.
@@ -193,3 +194,12 @@ File di configurazione "di progetto" con schema più ampio (strategie, risk mana
 - I livelli RSI di ipercomprato/ipervenduto dichiarati come campo (`70/30`) non corrispondono alle soglie realmente applicate nei controlli di rigetto (`85/15`).
 - Il banner di avvio in `Program.cs` (`RunLiveAsync`) stampa "Risk per Trade: 1% (€1.50)", ma `BotSchedulerService` passa realmente `riskPercentPerTrade: 0.02m` (2%) al `RiskManager`: il testo mostrato all'utente non riflette il rischio effettivamente applicato.
 - Il filtro di capitalizzazione (§7) dipende da CoinGecko, un terzo provider aggiuntivo rispetto a Crypto.com/Bybit già usati per prezzi e candele: se CoinGecko è irraggiungibile o applica rate limiting, il filtro viene silenziosamente disattivato per il ciclo (nessun retry, nessun backoff), quindi in quel ciclo possono passare anche crypto a bassa capitalizzazione.
+
+## 15. Porting a .NET 10 (`net10/`)
+
+Il repository contiene, nella cartella `net10/`, una copia integrale del progetto: stessi `Program.cs`, `Models/`, `Services/`, `Strategies/`, `config.json`, `appsettings.json`/`appsettings.local.json` e persino `Documentation.md`, verificati identici byte per byte al codice della root descritto in questo documento. L'unica differenza è nel `.csproj`:
+
+- `TargetFramework` è `net10.0` invece di `net8.0`.
+- Sono stati rimossi i pacchetti di compatibilità `System.Net.Http` 4.3.4 e `System.Runtime.InteropServices` 4.3.0 (superati dal runtime moderno); resta solo `Newtonsoft.Json` 13.0.4.
+
+Il progetto principale (root, `.NET 8.0`) resta quello attivo: `net10/` è una copia parallela introdotta per validare il porting (build Release e smoke test del backtest sintetico), non ancora promossa a versione definitiva. Le due copie non sono collegate a livello di build (progetti `.csproj` distinti) e vanno mantenute allineate manualmente finché non si sceglie quale delle due diventa la versione unica.
