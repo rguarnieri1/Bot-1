@@ -1,9 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
-rem Avvia gli exe dei bot 1,6,7,8,9,10,11,12 presenti in <cartella>\bin\Release\net11.0\
+rem Avvia gli exe dei bot 1,6,7,8,9,10,11,12,13 presenti in <cartella>\bin\Release\net11.0\
 rem con 10 secondi di attesa tra uno e l'altro.
 set "ROOT=%~dp0"
-set "BOTS=1 6 7 8 9 10 11 12"
+set "BOTS=1 6 7 8 9 10 11 12 13"
 set "FRAMEWORK=net11.0"
 set "DELAY=10"
 
@@ -53,6 +53,19 @@ if exist "%WEBNG_DIR%\run-prod.cmd" (
 ) else (
   echo [SKIP] run-prod.cmd non trovato in %WEBNG_DIR%
 )
+
+rem Chrome: attende che il frontend (build + serve) sia in ascolto sulla 4200 (max ~120 s)
+echo Attendo che http://localhost:4200/ sia pronto...
+set READY=0
+for /l %%I in (1,1,60) do (
+  if !READY! EQU 0 (
+    netstat -ano | findstr /r /c:":4200 .*:0 " >nul && set READY=1
+    if !READY! EQU 0 timeout /t 2 /nobreak >nul
+  )
+)
+if !READY! EQU 0 echo [WARN] Porta 4200 non raggiunta entro il tempo limite, apro comunque Chrome.
+echo [START] Chrome http://localhost:4200/
+start "" chrome "http://localhost:4200/"
 
 echo.
 echo Avviati !COUNT! processi.
